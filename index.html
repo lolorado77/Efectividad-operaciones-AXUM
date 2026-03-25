@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indicadores Clave de Visita</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;padding:32px 16px;color:#1a1a2e}
+.container{max-width:720px;margin:0 auto}
+.header{background:linear-gradient(135deg,#0D1B2A 0%,#1F4E79 100%);border-radius:16px;padding:28px 32px;margin-bottom:20px;color:#fff}
+.header h1{font-size:22px;font-weight:600;margin-bottom:6px}
+.header p{font-size:13px;opacity:.75;line-height:1.5}
+.card{background:#fff;border-radius:12px;padding:22px 24px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card h2{font-size:14px;font-weight:600;color:#1F4E79;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.num{width:22px;height:22px;background:#1F4E79;color:#fff;border-radius:50%;font-size:11px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.mode-toggle{display:flex;gap:0;border:1.5px solid #1F4E79;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.mode-btn{flex:1;padding:9px;font-size:13px;font-weight:500;border:none;background:#fff;color:#1F4E79;cursor:pointer;transition:all .15s}
+.mode-btn.active{background:#1F4E79;color:#fff}
+.file-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f0}
+.file-row:last-child{border-bottom:none;padding-bottom:0}
+.file-icon{font-size:19px;width:26px;text-align:center;flex-shrink:0}
+.file-info{flex:1}
+.file-info .lbl{font-size:13px;font-weight:500;color:#333;margin-bottom:1px}
+.file-info .desc{font-size:11px;color:#888}
+.file-info .fname{font-size:11px;color:#276221;font-weight:500;margin-top:2px}
+.btn-upload{padding:5px 14px;font-size:12px;font-weight:500;border:1.5px solid #1F4E79;border-radius:6px;background:#fff;color:#1F4E79;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.btn-upload:hover{background:#1F4E79;color:#fff}
+.btn-upload.done{border-color:#276221;color:#276221}
+.btn-upload.done:hover{background:#276221;color:#fff}
+input[type=file]{display:none}
+.date-grid{display:grid;gap:10px 14px;align-items:center}
+.date-grid.single{grid-template-columns:auto 1fr}
+.date-grid.range{grid-template-columns:auto 1fr auto 1fr}
+.date-grid label{font-size:13px;color:#555;font-weight:500;white-space:nowrap}
+input[type=date]{font-size:13px;padding:7px 12px;border:1.5px solid #ddd;border-radius:8px;color:#333;outline:none;transition:border .15s;width:100%}
+input[type=date]:focus{border-color:#1F4E79}
+.date-meta{margin-top:12px;background:#f5f8ff;border-radius:8px;padding:9px 13px;font-size:12px;color:#555;line-height:1.9;border-left:3px solid #1F4E79}
+.date-meta b{color:#1F4E79}
+.mode-note{font-size:12px;color:#666;line-height:1.5}
+.gen-btn{width:100%;padding:13px;font-size:15px;font-weight:600;border:none;border-radius:10px;background:linear-gradient(135deg,#1F4E79,#2e6ea6);color:#fff;cursor:pointer;transition:opacity .15s,transform .1s;letter-spacing:.3px}
+.gen-btn:hover{opacity:.88}
+.gen-btn:active{transform:scale(.98)}
+.gen-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.progress{margin-top:14px;display:none}
+.bar-bg{height:6px;background:#e8eef5;border-radius:3px;overflow:hidden;margin-bottom:7px}
+.bar-fill{height:6px;background:linear-gradient(90deg,#1F4E79,#2e9ed6);border-radius:3px;width:0;transition:width .3s}
+.prog-txt{font-size:12px;color:#666}
+.msg{margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;display:none;line-height:1.5}
+.msg.err{background:#fce8e8;border:1px solid #f5c6c6;color:#9c0006}
+.msg.ok{background:#e8f5e8;border:1px solid #c6e8c6;color:#276221}
+footer{text-align:center;font-size:11px;color:#aaa;margin-top:20px;padding-bottom:8px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <h1>📊 Indicadores Clave de Visita</h1>
+  <p>Generador de reportes Excel · Fuerza de ventas P&amp;G<br>Modo fecha puntual o acumulado por rango. Procesamiento 100% local.</p>
+</div>
+
+<div class="card">
+  <h2><span class="num">1</span> Modo de reporte</h2>
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btn-mode-single" onclick="setMode('single')">📅 Fecha puntual</button>
+    <button class="mode-btn" id="btn-mode-range" onclick="setMode('range')">📆 Rango acumulado</button>
+  </div>
+  <p class="mode-note" id="mode-desc">Genera el reporte para un día específico.</p>
+</div>
+
+<div class="card">
+  <h2><span class="num">2</span> Archivos fuente</h2>
+  <div class="file-row">
+    <div class="file-icon">📋</div>
+    <div class="file-info">
+      <div class="lbl">Programación</div>
+      <div class="desc">Programacion_procter.xlsx</div>
+      <div class="fname" id="fn-prog"></div>
+    </div>
+    <button class="btn-upload" id="bbtn-prog" onclick="document.getElementById('f-prog').click()">Seleccionar</button>
+    <input type="file" id="f-prog" accept=".xlsx" onchange="picked('prog',this)">
+  </div>
+  <div class="file-row">
+    <div class="file-icon">📍</div>
+    <div class="file-info">
+      <div class="lbl">Checkin / Checkout</div>
+      <div class="desc" id="desc-ci">VerCheckinCheckout_XX_.xlsx</div>
+      <div class="fname" id="fn-ci"></div>
+    </div>
+    <button class="btn-upload" id="bbtn-ci" onclick="document.getElementById('f-ci').click()">Seleccionar</button>
+    <input type="file" id="f-ci" accept=".xlsx" onchange="picked('ci',this)">
+  </div>
+  <div class="file-row">
+    <div class="file-icon">🛒</div>
+    <div class="file-info">
+      <div class="lbl">Compró / No compró</div>
+      <div class="desc" id="desc-cnc">ComproNoCompro_XX_.xlsx</div>
+      <div class="fname" id="fn-cnc"></div>
+    </div>
+    <button class="btn-upload" id="bbtn-cnc" onclick="document.getElementById('f-cnc').click()">Seleccionar</button>
+    <input type="file" id="f-cnc" accept=".xlsx" onchange="picked('cnc',this)">
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="num">3</span> Fecha del reporte</h2>
+  <div id="date-single">
+    <div class="date-grid single">
+      <label>Fecha:</label>
+      <input type="date" id="fecha" onchange="updDate()">
+    </div>
+    <div class="date-meta" id="dinfo-single"></div>
+  </div>
+  <div id="date-range" style="display:none">
+    <div class="date-grid range">
+      <label>Desde:</label>
+      <input type="date" id="fecha-ini" onchange="updDateRange()">
+      <label>Hasta:</label>
+      <input type="date" id="fecha-fin" onchange="updDateRange()">
+    </div>
+    <div class="date-meta" id="dinfo-range"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="num">4</span> Generar</h2>
+  <button class="gen-btn" id="gbtn" disabled onclick="run()">⬇ Generar y descargar reporte Excel</button>
+  <div class="progress" id="pgwrap">
+    <div class="bar-bg"><div class="bar-fill" id="pgbar"></div></div>
+    <p class="prog-txt" id="pgtxt">Procesando...</p>
+  </div>
+  <div class="msg" id="msg"></div>
+</div>
+
+<footer>Procesamiento 100% local · Ningún archivo se sube a internet</footer>
+</div>
+<script>
+const FILES={prog:null,ci:null,cnc:null};
+let MODE='single';
+const DAYS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+(function(){const t=new Date(),iso=t.toISOString().slice(0,10);
+  document.getElementById('fecha').value=iso;
+  document.getElementById('fecha-ini').value=iso;
+  document.getElementById('fecha-fin').value=iso;
+  updDate();updDateRange();})();
+
+function setMode(m){
+  MODE=m;
+  document.getElementById('btn-mode-single').classList.toggle('active',m==='single');
+  document.getElementById('btn-mode-range').classList.toggle('active',m==='range');
+  document.getElementById('date-single').style.display=m==='single'?'block':'none';
+  document.getElementById('date-range').style.display=m==='range'?'block':'none';
+  const acum=m==='range';
+  document.getElementById('mode-desc').textContent=acum?'Promedia los KPIs diarios de cada vendedor en el período. Los archivos de checkin y CNC deben contener todos los días del rango.':'Genera el reporte para un día específico.';
+  document.getElementById('desc-ci').textContent=acum?'VerCheckinCheckout — todos los días del período':'VerCheckinCheckout_XX_.xlsx';
+  document.getElementById('desc-cnc').textContent=acum?'ComproNoCompro — todos los días del período':'ComproNoCompro_XX_.xlsx';
+}
+function picked(k,inp){
+  if(!inp.files[0])return;FILES[k]=inp.files[0];
+  document.getElementById('fn-'+k).textContent='✓ '+inp.files[0].name;
+  const b=document.getElementById('bbtn-'+k);b.textContent='Cambiar';b.classList.add('done');
+  checkReady();
+}
+function checkReady(){document.getElementById('gbtn').disabled=!(FILES.prog&&FILES.ci&&FILES.cnc);}
+function wkNum(d){const D=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dy=D.getUTCDay()||7;D.setUTCDate(D.getUTCDate()+4-dy);const y1=new Date(Date.UTC(D.getUTCFullYear(),0,1));return Math.ceil((((D-y1)/86400000)+1)/7);}
+function dateInfo(d){const dow=d.getDay()||7,wn=wkNum(d),odd=wn%2===1;return '<b>Día:</b> '+DAYS[d.getDay()]+' &nbsp;|&nbsp; <b>Semana ISO:</b> '+wn+' &nbsp;|&nbsp; <b>Paridad:</b> '+(odd?'Impar':'Par')+'<br><b>Visita día:</b> '+dow+' &nbsp;|&nbsp; <b>Frecuencias:</b> Semanal + Semana '+(odd?'Impar':'Par');}
+function updDate(){const v=document.getElementById('fecha').value;if(!v)return;const[yr,mo,dy]=v.split('-').map(Number);document.getElementById('dinfo-single').innerHTML=dateInfo(new Date(yr,mo-1,dy));}
+function updDateRange(){
+  const vi=document.getElementById('fecha-ini').value,vf=document.getElementById('fecha-fin').value;
+  if(!vi||!vf)return;
+  const di=new Date(vi),df=new Date(vf);
+  const diff=Math.round((df-di)/86400000)+1;
+  let hab=0,cur=new Date(di);while(cur<=df){if(cur.getDay()>=1&&cur.getDay()<=5)hab++;cur.setDate(cur.getDate()+1);}
+  document.getElementById('dinfo-range').innerHTML='<b>Período:</b> '+diff+' días calendario, '+hab+' días hábiles<br>'+dateInfo(di)+'<br><b>Hasta:</b> '+dateInfo(df).split('<br>')[0];
+}
+function setProg(pct,txt){document.getElementById('pgwrap').style.display='block';document.getElementById('pgbar').style.width=pct+'%';document.getElementById('pgtxt').textContent=txt;}
+function showMsg(txt,type){const m=document.getElementById('msg');m.style.display='block';m.className='msg '+type;m.innerHTML=txt;}
+function hideMsg(){document.getElementById('msg').style.display='none';}
+function readFile(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>res(XLSX.read(e.target.result,{type:'binary'}));r.readAsBinaryString(file);});}
+function toJSON(wb){return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null});}
+function fmtDate(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
+function isoDate(d){return d.toISOString().slice(0,10);}
+function habilDates(ini,fin){const dates=[];let cur=new Date(ini);while(cur<=fin){if(cur.getDay()>=1&&cur.getDay()<=5)dates.push(new Date(cur));cur.setDate(cur.getDate()+1);}return dates;}
+function parseFechaCi(v){if(!v)return null;const s=String(v).trim();const m=s.match(/(\d{2})\/(\d{2})\/(\d{4})/);if(m)return m[3]+'-'+m[2]+'-'+m[1];return s.slice(0,10);}
+function parseFechaCnc(v){if(!v)return null;const s=String(v).trim();if(s.match(/^\d{4}-\d{2}-\d{2}/))return s.slice(0,10);return null;}
+
+async function run(){
+  hideMsg();document.getElementById('gbtn').disabled=true;
+  try{if(MODE==='single')await runSingle();else await runRange();}
+  catch(e){showMsg('❌ '+e.message,'err');console.error(e);}
+  document.getElementById('gbtn').disabled=false;
+}
+
+async function runSingle(){
+  const v=document.getElementById('fecha').value;if(!v)throw new Error('Seleccioná una fecha.');
+  const[yr,mo,dy]=v.split('-').map(Number),d=new Date(yr,mo-1,dy);
+  const dow=d.getDay()||7,odd=wkNum(d)%2===1,ds=fmtDate(d);
+  const fn=String(dy).padStart(2,'0')+String(mo).padStart(2,'0')+yr+'_IndicadoresClave.xlsx';
+  setProg(10,'Leyendo programación...');const progRows=toJSON(await readFile(FILES.prog));
+  setProg(30,'Leyendo checkins...');const ciRows=toJSON(await readFile(FILES.ci));
+  setProg(50,'Leyendo Compró/No compró...');const cncRows=toJSON(await readFile(FILES.cnc));
+  setProg(65,'Calculando KPIs...');
+  const{kpis,progByV}=buildKpis(progRows,ciRows,cncRows,dow,odd);
+  if(!kpis.length)throw new Error('No se encontraron vendedores con clientes programados para esa fecha.');
+  setProg(85,'Generando Excel...');
+  const blob=buildXLS_single(kpis,progByV,ciRows,cncRows,ds);
+  setProg(100,'Descargando...');download(blob,fn);
+  showMsg('✅ <b>'+fn+'</b> generado con <b>'+kpis.length+' vendedores</b>.','ok');
+}
+
+async function runRange(){
+  const vi=document.getElementById('fecha-ini').value,vf=document.getElementById('fecha-fin').value;
+  if(!vi||!vf)throw new Error('Seleccioná las fechas de inicio y fin.');
+  const dIni=new Date(vi),dFin=new Date(vf);
+  if(dIni>dFin)throw new Error('La fecha inicial debe ser anterior o igual a la final.');
+  setProg(10,'Leyendo programación...');const progRows=toJSON(await readFile(FILES.prog));
+  setProg(25,'Leyendo checkins...');const ciRows=toJSON(await readFile(FILES.ci));
+  setProg(40,'Leyendo Compró/No compró...');const cncRows=toJSON(await readFile(FILES.cnc));
+  const fechas=habilDates(dIni,dFin);
+  if(!fechas.length)throw new Error('No hay días hábiles en el rango seleccionado.');
+  const ciParsed=ciRows.map(r=>({...r,_fecha:parseFechaCi(r['Fecha Checkin'])}));
+  const cncParsed=cncRows.filter(r=>r['Vendedor']&&r['Cliente Id']).map(r=>({...r,_fecha:parseFechaCnc(r['Fecha y Hora Subida'])}));
+  const dailyKpis=[];let processed=0;
+  for(const fecha of fechas){
+    const dow=fecha.getDay()||7,odd=wkNum(fecha)%2===1,iso=isoDate(fecha);
+    const ciDay=ciParsed.filter(r=>r._fecha===iso);
+    const cncDay=cncParsed.filter(r=>r._fecha===iso);
+    if(!ciDay.length&&!cncDay.length){processed++;continue;}
+    const{kpis}=buildKpis(progRows,ciDay,cncDay,dow,odd);
+    if(kpis.length)dailyKpis.push(kpis);
+    processed++;
+    setProg(40+Math.round(40*processed/fechas.length),'Procesando '+fmtDate(fecha)+'...');
+  }
+  if(!dailyKpis.length)throw new Error('Sin datos en el rango. Verificá que los archivos contengan registros del período.');
+  setProg(82,'Calculando acumulado...');
+  const kpisAcum=acumular(dailyKpis);
+  const rango=fmtDate(dIni)+' → '+fmtDate(dFin);
+  const fn='IC_Acumulado_'+vi.replace(/-/g,'')+'_'+vf.replace(/-/g,'')+'.xlsx';
+  setProg(90,'Generando Excel...');
+  const blob=buildXLS_range(kpisAcum,progRows,ciParsed,cncParsed,fechas,rango);
+  setProg(100,'Descargando...');download(blob,fn);
+  showMsg('✅ <b>'+fn+'</b> — <b>'+kpisAcum.length+' vendedores</b>, <b>'+dailyKpis.length+' días</b> con datos.','ok');
+}
+
+const S2S={'P&G BAHIA KAF':'BAHIA BLANCA','P&G BAHIA TRADE':'BAHIA BLANCA','P&G COMO KAF':'COMODORO','P&G COMO TRADE':'COMODORO','BAT COMODORO':'COMODORO','P&G PINA KAF':'LA COSTA','P&G PINA TRADE':'LA COSTA','P&G LP KAF':'LA PLATA','P&G LP TRADE':'LA PLATA','P&G LP KIOSCOS':'LA PLATA','P&G MDQ KAF':'MAR DEL PLATA','P&G MDQ TRADE':'MAR DEL PLATA','P&G SAN VICENTE':'SAN VICENTE','P&G TRES ARROYO':'TRES ARROYOS'};
+const KAF=new Set(['P&G BAHIA KAF','P&G COMO KAF','P&G PINA KAF','P&G LP KAF','P&G MDQ KAF','BAT COMODORO','P&G LP KIOSCOS']);
+const TRADE=new Set(['P&G BAHIA TRADE','P&G COMO TRADE','P&G PINA TRADE','P&G LP TRADE','P&G MDQ TRADE','P&G SAN VICENTE','P&G TRES ARROYO']);
+
+function buildKpis(progRows,ciRows,cncRows,dow,odd){
+  const visDay=String(dow),frecs=['Semanal',odd?'Semana Impar':'Semana Par'];
+  const progByV={},metaByV={};
+  for(const r of progRows){
+    if(!r['Ven.']||!r['Cuenta'])continue;
+    const v=parseInt(r['Ven.']),c=parseInt(r['Cuenta']);
+    const vis=String(r['Visita']||'').trim(),frec=String(r['Frecuencia de Visita']||'Semanal').trim();
+    if(!metaByV[v])metaByV[v]={nombre:String(r['Vendedor']||''),supervisor:String(r['Supervisor']||'')};
+    if(vis===visDay&&frecs.includes(frec)){if(!progByV[v])progByV[v]=new Set();progByV[v].add(c);}
+  }
+  const validByV={},allByV={};
+  for(const r of ciRows){
+    if(!r['Vendedor']||!r['Codigo'])continue;
+    const v=parseInt(r['Vendedor']),c=parseInt(r['Codigo']);
+    if(!allByV[v])allByV[v]=new Set();allByV[v].add(c);
+    if(String(r['Es Valido']||'').toUpperCase().trim()==='SI'){if(!validByV[v])validByV[v]=new Set();validByV[v].add(c);}
+  }
+  const comByV={},cncAllByV={};
+  for(const r of cncRows){
+    const vend=r['Vendedor'],cli=r['Cliente Id'];if(!vend||!cli)continue;
+    const v=parseInt(vend),c=parseInt(cli);
+    if(!cncAllByV[v])cncAllByV[v]=new Set();cncAllByV[v].add(c);
+    if(String(r['Compro?']||'').trim().toLowerCase()==='si'){if(!comByV[v])comByV[v]=new Set();comByV[v].add(c);}
+  }
+  const kpis=[];
+  for(const[vs,prog] of Object.entries(progByV)){
+    const v=parseInt(vs),valid=validByV[v]||new Set(),allCI=allByV[v]||new Set(),com=comByV[v]||new Set(),cncAll=cncAllByV[v]||new Set();
+    const cp=prog.size;if(!cp)continue;
+    const vc=[...prog].filter(c=>valid.has(c)).length;
+    const pcc=[...prog].filter(c=>com.has(c)).length;
+    const psc=[...prog].filter(c=>cncAll.has(c)&&!com.has(c)).length;
+    const npcc=[...com].filter(c=>!prog.has(c)).length;
+    const npsc=[...cncAll].filter(c=>!prog.has(c)&&!com.has(c)).length;
+    const m=metaByV[v]||{nombre:'',supervisor:''};
+    const sup=m.supervisor,suc=S2S[sup]||'OTRAS';
+    kpis.push({cod:v,nombre:m.nombre,supervisor:sup,sucursal:suc,cli_prog:cp,vis_cert:vc,cert_prog:cp?vc/cp:0,prog_cc:pcc,efectividad:cp?pcc/cp:0,prog_sc:psc,cumplimiento:cp?(pcc+psc)/cp:0,no_prog_cc:npcc,no_prog_sc:npsc,cli_vis:allCI.size});
+  }
+  kpis.sort((a,b)=>a.sucursal.localeCompare(b.sucursal)||a.supervisor.localeCompare(b.supervisor)||a.cod-b.cod);
+  return{kpis,progByV};
+}
+
+function acumular(dailyFrames){
+  const acc={};
+  for(const frame of dailyFrames)for(const vr of frame){
+    if(!acc[vr.cod])acc[vr.cod]={...vr,dias:0,_s:{cli_prog:0,vis_cert:0,cert_prog:0,prog_cc:0,efectividad:0,prog_sc:0,cumplimiento:0,no_prog_cc:0,no_prog_sc:0,cli_vis:0}};
+    acc[vr.cod].dias++;for(const k of Object.keys(acc[vr.cod]._s))acc[vr.cod]._s[k]+=vr[k]||0;
+  }
+  return Object.values(acc).map(vr=>{const d=vr.dias;return{cod:vr.cod,nombre:vr.nombre,supervisor:vr.supervisor,sucursal:vr.sucursal,dias:d,...Object.fromEntries(Object.entries(vr._s).map(([k,v])=>[k,v/d]))};}).sort((a,b)=>a.sucursal.localeCompare(b.sucursal)||a.supervisor.localeCompare(b.supervisor)||a.cod-b.cod);
+}
+
+const SS={'BAHIA BLANCA':{f:'FFDEEAF1',c:'FF1F4E79'},'COMODORO':{f:'FFE2EFDA',c:'FF375623'},'LA COSTA':{f:'FFFCE4D6',c:'FF7B3F00'},'LA PLATA':{f:'FFEAD1F5',c:'FF4A235A'},'MAR DEL PLATA':{f:'FFFFF2CC',c:'FF7F6000'},'SAN VICENTE':{f:'FFFCE4D6',c:'FF833C00'},'TRES ARROYOS':{f:'FFD5D8DC',c:'FF212F3D'},'OTRAS':{f:'FFFFFFFF',c:'FF444444'}};
+const DBG='FF0D1B2A',NVY='FF1F4E79',DNV='FF1F3864',NUM='#,##0',PCT='0.00%';
+const RF='FFFFC7CE',RC='FF9C0006',YF='FFFFEB9C',YC='FF9C6500',GF='FFC6EFCE',GC='FF276221';
+function mC(v,f,c,b,fmt,al){const cl={v,t:typeof v==='number'?'n':'s',s:{fill:{patternType:'solid',fgColor:{rgb:f||'FFFFFFFF'}},font:{name:'Arial',sz:9,bold:!!b,color:{rgb:c||'FF000000'}},alignment:{horizontal:al||'center',vertical:'center',wrapText:false},border:{top:{style:'thin',color:{rgb:'FFD0D0D0'}},bottom:{style:'thin',color:{rgb:'FFD0D0D0'}},left:{style:'thin',color:{rgb:'FFD0D0D0'}},right:{style:'thin',color:{rgb:'FFD0D0D0'}}}}};if(fmt)cl.s.numFmt=fmt;return cl;}
+function mg(ws,r1,c1,r2,c2){if(!ws['!merges'])ws['!merges']=[];ws['!merges'].push({s:{r:r1,c:c1},e:{r:r2,c:c2}});}
+function ec(r,c){return XLSX.utils.encode_cell({r,c});}
+function gb(arr,k){return arr.reduce((m,v)=>{(m[v[k]]=m[v[k]]||[]).push(v);return m;},{});}
+function sm(a,k){return a.reduce((s,v)=>s+(v[k]||0),0);}
+function av(a,k){return a.length?sm(a,k)/a.length:0;}
+function zf(n){return String(parseInt(n)).padStart(3,'0');}
+function semE(v,sup){if(KAF.has(sup)){if(v<.65)return[RF,RC];if(v<.75)return[YF,YC];return[GF,GC];}if(TRADE.has(sup)){if(v<.25)return[RF,RC];if(v<.4)return[null,null];if(v<.5)return[YF,YC];return[GF,GC];}return[null,null];}
+function semC(v){if(v<.9)return[null,null];if(v<.95)return[YF,YC];return[GF,GC];}
+
+function makeShIC(kpis,titulo,conDias){
+  const ws={};let r=0;
+  const H=['Cód.','Nombre Vendedor','Supervisor','Clientes\nProg.','Vis.\nCertificadas','Cert./\nProg.','Prog.\nc/Compra','Efectividad','Prog.\ns/Compra','Cumplimiento','No Prog.\nc/Compra','No Prog.\ns/Compra','Cli.\nVisitados'];
+  if(conDias)H.push('Días\nActivos');
+  const nc=H.length;
+  const FM=[null,null,null,NUM,NUM,PCT,NUM,PCT,NUM,PCT,NUM,NUM,NUM];if(conDias)FM.push(NUM);
+  mg(ws,r,0,r,nc-1);ws[ec(r,0)]=mC(titulo,DBG,'FFFFFFFF',true,null,'left');r++;
+  const bySuc=gb(kpis,'sucursal');
+  for(const suc of Object.keys(bySuc).sort()){
+    const{f:sf,c:sfc}=SS[suc]||SS['OTRAS'];
+    mg(ws,r,0,r,nc-1);ws[ec(r,0)]=mC('▶  SUCURSAL: '+suc,NVY,'FFFFFFFF',true,null,'left');r++;
+    const bySup=gb(bySuc[suc],'supervisor');
+    for(const sup of Object.keys(bySup).sort()){
+      const g=bySup[sup];
+      mg(ws,r,0,r,nc-1);ws[ec(r,0)]=mC('   Mesa: '+sup,sf,sfc,true,null,'left');r++;
+      H.forEach((h,i)=>{const c2=mC(h,NVY,'FFFFFFFF',true,null,'center');c2.s.alignment.wrapText=true;ws[ec(r,i)]=c2;});r++;
+      g.forEach((vr,i)=>{
+        const alt=i%2===0?'FFFFFFFF':sf;
+        const vals=[zf(vr.cod),vr.nombre,vr.supervisor,vr.cli_prog,vr.vis_cert,vr.cert_prog,vr.prog_cc,vr.efectividad,vr.prog_sc,vr.cumplimiento,vr.no_prog_cc,vr.no_prog_sc,vr.cli_vis];
+        if(conDias)vals.push(Math.round(vr.dias||1));
+        vals.forEach((v,ci)=>{
+          let bg=alt,fc='FF000000',bl=false;
+          if(ci===5&&vr.cert_prog<.9){bg=RF;fc=RC;bl=true;}
+          if(ci===7&&vr.efectividad<.4){bg=RF;fc=RC;bl=true;}
+          if(ci===9&&vr.cumplimiento<.9){bg=RF;fc=RC;bl=true;}
+          ws[ec(r,ci)]=mC(v,bg,fc,bl,FM[ci],ci===1||ci===2?'left':'center');
+        });r++;
+      });
+      mg(ws,r,0,r,2);ws[ec(r,0)]=mC('SUBTOTAL  '+sup,sf,sfc,true,null,'left');
+      for(let ci=1;ci<=2;ci++)ws[ec(r,ci)]=mC('',sf,sfc,true);
+      const cpP=sm(g,'cli_prog'),cpT=sm(g,'vis_cert'),pccT=sm(g,'prog_cc'),pscT=sm(g,'prog_sc');
+      const sv={3:cpP,4:cpT,5:cpP?cpT/cpP:0,6:pccT,7:cpP?pccT/cpP:0,8:pscT,9:cpP?(pccT+pscT)/cpP:0,10:sm(g,'no_prog_cc'),11:sm(g,'no_prog_sc'),12:sm(g,'cli_vis')};
+      if(conDias)sv[13]=Math.round(av(g,'dias'));
+      const sfm={3:NUM,4:NUM,5:PCT,6:NUM,7:PCT,8:NUM,9:PCT,10:NUM,11:NUM,12:NUM,13:NUM};
+      for(const[ci,v] of Object.entries(sv))ws[ec(r,+ci)]=mC(v,sf,sfc,true,sfm[ci],'center');
+      r+=2;
+    }
+  }
+  const W=[8,22,20,10,12,10,11,11,11,11,11,11,10];if(conDias)W.push(9);
+  ws['!cols']=W.map(w=>({wch:w}));
+  ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r,c:nc-1}});
+  return ws;
+}
+
+function makeShTabla(kpis,perLabel,perGet,conDias){
+  const ws={};
+  const H=['Vendedor','Nombre','Sucursal','Supervisor',perLabel,'Clientes Prog.','Vis. Certificadas','Cert./Prog.','Prog. c/Compra','Efectividad','Prog. s/Compra','Cumplimiento','No Prog. c/Compra','No Prog. s/Compra','Clientes Visitados'];
+  if(conDias)H.push('Días Activos');
+  const FM=[null,null,null,null,null,NUM,NUM,PCT,NUM,PCT,NUM,PCT,NUM,NUM,NUM];if(conDias)FM.push(NUM);
+  H.forEach((h,i)=>ws[ec(0,i)]=mC(h,DNV,'FFFFFFFF',true,null,'center'));
+  kpis.forEach((vr,ri)=>{
+    const alt=ri%2===0?'FFFFFFFF':'FFEBF3FB';
+    const vals=[zf(vr.cod),vr.nombre,vr.sucursal,vr.supervisor,perGet(vr),vr.cli_prog,vr.vis_cert,vr.cert_prog,vr.prog_cc,vr.efectividad,vr.prog_sc,vr.cumplimiento,vr.no_prog_cc,vr.no_prog_sc,vr.cli_vis];
+    if(conDias)vals.push(Math.round(vr.dias||1));
+    vals.forEach((v,ci)=>{
+      let bg=alt,fc='FF000000',bl=false;
+      if(ci===7&&vr.cert_prog<.9){bg=RF;fc=RC;bl=true;}
+      if(ci===9&&vr.efectividad<.4){bg=RF;fc=RC;bl=true;}
+      if(ci===11&&vr.cumplimiento<.9){bg=RF;fc=RC;bl=true;}
+      ws[ec(ri+1,ci)]=mC(v,bg,fc,bl,FM[ci],ci>0&&ci<4?'left':'center');
+    });
+  });
+  ws['!cols']=[8,22,16,20,14,12,14,10,12,10,12,10,14,14,14,10].slice(0,H.length).map(w=>({wch:w}));
+  ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:kpis.length,c:H.length-1}});
+  return ws;
+}
+
+function grpTotals(g){
+  // Suma cantidades, recalcula porcentajes sobre totales
+  const cp=sm(g,'cli_prog'),vc=sm(g,'vis_cert'),pcc=sm(g,'prog_cc'),psc=sm(g,'prog_sc');
+  return{cp,vc,pcc,psc,
+    ctp:cp?vc/cp:0,
+    ef:cp?pcc/cp:0,
+    cu:cp?(pcc+psc)/cp:0,
+    npcc:sm(g,'no_prog_cc'),npsc:sm(g,'no_prog_sc'),cv:sm(g,'cli_vis')};
+}
+function makeShSup(kpis,conDias){
+  const ws={};
+  const H=['Supervisor','Cant ven'];if(conDias)H.push('Días prom.');
+  H.push('Clientes Prog.','Vis. Certificadas','Cert./Prog.','Prog. c/Compra','Efectividad','Prog. s/Compra','Cumplimiento','No Prog. c/Compra','No Prog. s/Compra','Clientes Visitados');
+  H.forEach((h,i)=>ws[ec(0,i)]=mC(h,DNV,'FFFFFFFF',true,null,'center'));
+  const off=conDias?1:0;
+  Object.entries(gb(kpis,'supervisor')).sort().forEach(([sup,g],ri)=>{
+    const alt=ri%2===0?'FFFFFFFF':'FFEBF3FB';
+    const t=grpTotals(g);
+    const vals=[sup,g.length];if(conDias)vals.push(Math.round(av(g,'dias')));
+    vals.push(t.cp,t.vc,t.ctp,t.pcc,t.ef,t.psc,t.cu,t.npcc,t.npsc,t.cv);
+    vals.forEach((v,ci)=>{
+      let bg=alt,fc='FF000000',bl=false;
+      if(ci===4+off){const[f,c]=semC(t.ctp);if(f){bg=f;fc=c;bl=true;}}
+      if(ci===6+off){const[f,c]=semE(t.ef,sup);if(f){bg=f;fc=c;bl=true;}}
+      if(ci===8+off){const[f,c]=semC(t.cu);if(f){bg=f;fc=c;bl=true;}}
+      const fmt=ci===0?null:(ci<=1+off?NUM:(ci===4+off||ci===6+off||ci===8+off?PCT:NUM));
+      ws[ec(ri+1,ci)]=mC(v,bg,fc,bl,fmt,ci===0?'left':'center');
+    });
+  });
+  ws['!cols']=H.map((_,i)=>({wch:i===0?22:i===1?9:10}));
+  ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Object.keys(gb(kpis,'supervisor')).length,c:H.length-1}});
+  return ws;
+}
+
+function makeShSuc(kpis,conDias){
+  const ws={};
+  const H=['Sucursal','Vendedores'];if(conDias)H.push('Días prom.');
+  H.push('Clientes Prog.','Vis. Certificadas','Cert./Prog.','Prog. c/Compra','Efectividad','Prog. s/Compra','Cumplimiento','No Prog. c/Compra','No Prog. s/Compra','Clientes Visitados');
+  H.forEach((h,i)=>ws[ec(0,i)]=mC(h,DNV,'FFFFFFFF',true,null,'center'));
+  const off=conDias?1:0; let r=1;
+  const bySuc=gb(kpis,'sucursal');
+  for(const suc of Object.keys(bySuc).sort()){
+    const{f:sf,c:sfc}=SS[suc]||SS['OTRAS'],g=bySuc[suc];
+    const t=grpTotals(g);
+    const vals=[suc,g.length];if(conDias)vals.push(Math.round(av(g,'dias')));
+    vals.push(t.cp,t.vc,t.ctp,t.pcc,t.ef,t.psc,t.cu,t.npcc,t.npsc,t.cv);
+    vals.forEach((v,ci)=>{const fmt=ci===0?null:(ci<=1+off?NUM:(ci===4+off||ci===6+off||ci===8+off?PCT:NUM));ws[ec(r,ci)]=mC(v,sf,sfc,true,fmt,ci===0?'left':'center');});
+    r++;
+  }
+  // Fila TOTAL GENERAL — suma de todo
+  const t=grpTotals(kpis);
+  ws[ec(r,0)]=mC('TOTAL GENERAL',DNV,'FFFFFFFF',true,null,'left');
+  const tots=[kpis.length];if(conDias)tots.push(Math.round(av(kpis,'dias')));
+  tots.push(t.cp,t.vc,t.ctp,t.pcc,t.ef,t.psc,t.cu,t.npcc,t.npsc,t.cv);
+  tots.forEach((v,i)=>{const ci=i+1;const fmt=ci<=1+off?NUM:(ci===4+off||ci===6+off||ci===8+off?PCT:NUM);ws[ec(r,ci)]=mC(v,DNV,'FFFFFFFF',true,fmt,'center');});
+  ws['!cols']=H.map((_,i)=>({wch:i===0?18:i===1?9:10}));
+  ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r,c:H.length-1}});
+  return ws;
+}
+
+function makeShCliSingle(progByV,ciRows,cncRows,kpis){
+  const ws={};
+  ['Sucursal','Supervisor','Cód.','Vendedor','Cód. Cliente','Cliente','Vis. Certificada','Efectividad','Cumplimiento'].forEach((h,i)=>ws[ec(0,i)]=mC(h,DNV,'FFFFFFFF',true,null,'center'));
+  const vByV={},aByV={},cByV={};
+  for(const r of ciRows){if(!r['Vendedor']||!r['Codigo'])continue;const v=parseInt(r['Vendedor']),c=parseInt(r['Codigo']);if(!aByV[v])aByV[v]=new Set();aByV[v].add(c);if(String(r['Es Valido']||'').toUpperCase().trim()==='SI'){if(!vByV[v])vByV[v]=new Set();vByV[v].add(c);}}
+  for(const r of cncRows){const vend=r['Vendedor'],cli=r['Cliente Id'];if(!vend||!cli)continue;const v=parseInt(vend),c=parseInt(cli);if(String(r['Compro?']||'').trim().toLowerCase()==='si'){if(!cByV[v])cByV[v]=new Set();cByV[v].add(c);}}
+  const rows=[];for(const vr of kpis){const pr=progByV[vr.cod]||new Set();for(const c of [...pr].sort((a,b)=>a-b))rows.push({vr,c});}
+  rows.sort((a,b)=>a.vr.sucursal.localeCompare(b.vr.sucursal)||a.vr.supervisor.localeCompare(b.vr.supervisor)||a.vr.cod-b.vr.cod||a.c-b.c);
+  rows.forEach(({vr,c},ri)=>{
+    const{f:sf}=SS[vr.sucursal]||SS['OTRAS'],alt=ri%2===0?'FFFFFFFF':sf;
+    const cert=(vByV[vr.cod]||new Set()).has(c),cumpl=(aByV[vr.cod]||new Set()).has(c),ef=(cByV[vr.cod]||new Set()).has(c);
+    [vr.sucursal,vr.supervisor,zf(vr.cod),vr.nombre,c,'',cert?'SI':'NO',ef?'SI':'NO',cumpl?'SI':'NO'].forEach((v,ci)=>{
+      let bg=alt,fc='FF000000',bl=false;
+      if(ci>=6){bg=v==='SI'?GF:RF;fc=v==='SI'?GC:RC;bl=true;}
+      ws[ec(ri+1,ci)]=mC(v,bg,fc,bl,null,ci===0||ci===1||ci===3?'left':'center');
+    });
+  });
+  ws['!cols']=[16,20,8,22,11,28,14,14,14].map(w=>({wch:w}));
+  ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length,c:8}});
+  return ws;
+}
+
+function makeShCliRange(progRows,ciParsed,cncParsed,kpis,fechas){
+  const ws={};
+  ['Sucursal','Supervisor','Cód.','Vendedor','Cód. Cliente','Cliente','Días prog.','Días cert.','% Cert.','Días c/compra','% Efect.','% Cumpl.'].forEach((h,i)=>ws[ec(0,i)]=mC(h,DNV,'FFFFFFFF',true,null,'center'));
+  const cliRec={},cliNom={};
+  for(const fecha of fechas){
+    const iso=isoDate(fecha),dow=fecha.getDay()||7,odd=wkNum(fecha)%2===1,visDay=String(dow),frecs=['Semanal',odd?'Semana Impar':'Semana Par'];
+    const ciDay=ciParsed.filter(r=>r._fecha===iso),cncDay=cncParsed.filter(r=>r._fecha===iso);
+    if(!ciDay.length&&!cncDay.length)continue;
+    const progDay=progRows.filter(r=>r['Ven.']&&r['Cuenta']&&String(r['Visita']||'').trim()===visDay&&frecs.includes(String(r['Frecuencia de Visita']||'Semanal').trim()));
+    const progByV={};
+    for(const r of progDay){const v=parseInt(r['Ven.']),c=parseInt(r['Cuenta']);if(!progByV[v])progByV[v]=new Set();progByV[v].add(c);cliNom[v+'_'+c]=String(r['Nombre']||'');}
+    const vByV={},aByV={};
+    for(const r of ciDay){if(!r['Vendedor']||!r['Codigo'])continue;const v=parseInt(r['Vendedor']),c=parseInt(r['Codigo']);if(!aByV[v])aByV[v]=new Set();aByV[v].add(c);if(String(r['Es Valido']||'').toUpperCase().trim()==='SI'){if(!vByV[v])vByV[v]=new Set();vByV[v].add(c);}}
+    const comByV={};
+    for(const r of cncDay){const vend=r['Vendedor'],cli=r['Cliente Id'];if(!vend||!cli)continue;const v=parseInt(vend),c=parseInt(cli);if(String(r['Compro?']||'').trim().toLowerCase()==='si'){if(!comByV[v])comByV[v]=new Set();comByV[v].add(c);}}
+    for(const[vs,prog] of Object.entries(progByV)){const v=parseInt(vs),valid=vByV[v]||new Set(),allci=aByV[v]||new Set(),com=comByV[v]||new Set();for(const c of prog){const key=v+'_'+c;if(!cliRec[key])cliRec[key]={v,c,dp:0,dc:0,dco:0,dcu:0};cliRec[key].dp++;cliRec[key].dc+=valid.has(c)?1:0;cliRec[key].dco+=com.has(c)?1:0;cliRec[key].dcu+=allci.has(c)?1:0;}}
+  }
+  const kIdx=Object.fromEntries(kpis.map(vr=>[vr.cod,vr]));
+  const rows=Object.values(cliRec).filter(r=>kIdx[r.v]).map(r=>{const vr=kIdx[r.v],dp=r.dp;return{suc:vr.sucursal,sup:vr.supervisor,cod:r.v,nom:vr.nombre,c:r.c,cli:cliNom[r.v+'_'+r.c]||'',dp,dc:r.dc,pc:dp?r.dc/dp:0,dco:r.dco,pe:dp?r.dco/dp:0,pcu:dp?r.dcu/dp:0};}).sort((a,b)=>a.suc.localeCompare(b.suc)||a.sup.localeCompare(b.sup)||a.cod-b.cod||a.c-b.c);
+  rows.forEach((row,ri)=>{
+    const{f:sf}=SS[row.suc]||SS['OTRAS'],alt=ri%2===0?'FFFFFFFF':sf;
+    [row.suc,row.sup,zf(row.cod),row.nom,row.c,row.cli,row.dp,row.dc,row.pc,row.dco,row.pe,row.pcu].forEach((v,ci)=>{
+      let bg=alt,fc='FF000000',bl=false;
+      if(ci===8){bg=row.pc>=.9?GF:(row.pc>=.75?YF:RF);fc=row.pc>=.9?GC:(row.pc>=.75?YC:RC);bl=true;}
+      if(ci===10){bg=row.pe>=.5?GF:(row.pe>=.25?YF:RF);fc=row.pe>=.5?GC:(row.pe>=.25?YC:RC);bl=true;}
+      if(ci===11){bg=row.pcu>=.9?GF:(row.pcu>=.75?YF:RF);fc=row.pcu>=.9?GC:(row.pcu>=.75?YC:RC);bl=true;}
+      const fmt=ci>=6&&ci<=7?NUM:ci>=8?PCT:null;
+      ws[ec(ri+1,ci)]=mC(v,bg,fc,bl,fmt,ci===0||ci===1||ci===3||ci===5?'left':'center');
+    });
+  });
+  ws['!cols']=[16,20,8,22,11,28,9,9,9,11,9,9].map(w=>({wch:w}));
+  ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length,c:11}});
+  return ws;
+}
+
+function buildXLS_single(kpis,progByV,ciRows,cncRows,ds){
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,makeShIC(kpis,'INDICADORES CLAVE DE VISITA  |  '+ds,false),'Indicadores Clave');
+  XLSX.utils.book_append_sheet(wb,makeShTabla(kpis,'Fecha',()=>ds,false),'Tabla');
+  XLSX.utils.book_append_sheet(wb,makeShSup(kpis,false),'Por Supervisor');
+  XLSX.utils.book_append_sheet(wb,makeShSuc(kpis,false),'Por Sucursal');
+  XLSX.utils.book_append_sheet(wb,makeShCliSingle(progByV,ciRows,cncRows,kpis),'Clientes Programados');
+  return new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+function buildXLS_range(kpis,progRows,ciParsed,cncParsed,fechas,rango){
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,makeShIC(kpis,'INDICADORES CLAVE DE VISITA  |  '+rango,true),'Indicadores Clave');
+  XLSX.utils.book_append_sheet(wb,makeShTabla(kpis,'Período',()=>rango,true),'Tabla');
+  XLSX.utils.book_append_sheet(wb,makeShSup(kpis,true),'Por Supervisor');
+  XLSX.utils.book_append_sheet(wb,makeShSuc(kpis,true),'Por Sucursal');
+  XLSX.utils.book_append_sheet(wb,makeShCliRange(progRows,ciParsed,cncParsed,kpis,fechas),'Clientes Programados');
+  return new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+function download(blob,fn){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fn;a.click();URL.revokeObjectURL(url);}
+</script>
+</body>
+</html>
