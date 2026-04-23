@@ -51,6 +51,60 @@ input[type=date]:focus{border-color:#1F4E79}
 .msg.err{background:#fce8e8;border:1px solid #f5c6c6;color:#9c0006}
 .msg.ok{background:#e8f5e8;border:1px solid #c6e8c6;color:#276221}
 footer{text-align:center;font-size:11px;color:#aaa;margin-top:20px;padding-bottom:8px}
+/* ── Panel de resultados en pantalla ──────────── */
+#card-preview{display:none;margin-top:0}
+.preview-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.preview-header h2{margin-bottom:0}
+.preview-toggle{font-size:12px;color:#1F4E79;font-weight:500;display:flex;align-items:center;gap:4px}
+.preview-body{margin-top:14px}
+.tab-bar{display:flex;gap:0;border:1.5px solid #1F4E79;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.tab-btn{flex:1;padding:8px;font-size:12px;font-weight:500;border:none;background:#fff;color:#1F4E79;cursor:pointer;transition:all .15s}
+.tab-btn.active{background:#1F4E79;color:#fff}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.res-table{width:100%;border-collapse:collapse;font-size:11px}
+.res-table th{background:#1F3864;color:#fff;padding:6px 8px;text-align:center;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:1}
+.res-table th.left{text-align:left}
+.res-table td{padding:5px 8px;border-bottom:1px solid #f0f0f0;white-space:nowrap;text-align:center}
+.res-table td.left{text-align:left}
+.res-table tr:last-child td{border-bottom:none}
+.res-table tr.total-row td{background:#1F3864;color:#fff;font-weight:600}
+.res-table tr:nth-child(even) td{background:#f7f9fb}
+.res-table tr.total-row td{background:#1F3864!important;color:#fff!important}
+.pct-red{color:#9c0006;font-weight:600}
+.pct-yel{color:#9c6500;font-weight:600}
+.pct-grn{color:#276221;font-weight:600}
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid #e8eef5}
+.prev-periodo{font-size:11px;color:#888;margin-bottom:10px}
+
+/* ── Exclusiones (paso 3b) ─────────────────── */
+#card-excl{display:none}
+.cal-wrap{overflow-x:auto;padding-bottom:4px}
+.cal-month{margin-bottom:14px}
+.cal-month-title{font-size:12px;font-weight:600;color:#1F4E79;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-head{font-size:10px;font-weight:600;color:#999;text-align:center;padding:3px 0}
+.cal-day{font-size:11px;text-align:center;padding:5px 2px;border-radius:5px;cursor:default;user-select:none;line-height:1.2}
+.cal-day.habil{cursor:pointer;background:#f0f4f8;color:#333;transition:background .1s}
+.cal-day.habil:hover{background:#dbe8f5}
+.cal-day.feriado{background:#ffc7ce!important;color:#9c0006!important;font-weight:600;cursor:pointer}
+.cal-day.finde{color:#ccc;font-size:10px}
+.cal-day.fuera{visibility:hidden}
+.cal-day.ausente-ind{background:#ffffcc!important;color:#7f6000!important;font-weight:600}
+.excl-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#555}
+.excl-legend span{display:flex;align-items:center;gap:4px}
+.leg-box{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+/* ausencias individuales */
+.aus-section{margin-top:16px;border-top:1px solid #f0f0f0;padding-top:14px}
+.aus-title{font-size:12px;font-weight:600;color:#555;margin-bottom:8px}
+.aus-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.aus-row input[type=text]{font-size:12px;padding:5px 9px;border:1.5px solid #ddd;border-radius:6px;outline:none;flex:1;min-width:80px}
+.aus-row input[type=text]:focus{border-color:#1F4E79}
+.aus-row select{font-size:12px;padding:5px 9px;border:1.5px solid #ddd;border-radius:6px;outline:none;flex:2;min-width:120px}
+.aus-row .btn-rm{padding:4px 9px;font-size:12px;border:1.5px solid #f5c6c6;border-radius:6px;background:#fff;color:#9c0006;cursor:pointer}
+.btn-add-aus{margin-top:4px;padding:5px 12px;font-size:12px;border:1.5px dashed #1F4E79;border-radius:6px;background:#fff;color:#1F4E79;cursor:pointer;width:100%}
+.excl-summary{margin-top:10px;font-size:11px;color:#1F4E79;font-weight:500;min-height:16px}
+
 </style>
 </head>
 <body>
@@ -123,6 +177,23 @@ footer{text-align:center;font-size:11px;color:#aaa;margin-top:20px;padding-botto
   </div>
 </div>
 
+<div class="card" id="card-excl">
+  <h2><span class="num">3b</span> Días no laborables <span style="font-size:11px;font-weight:400;color:#888;margin-left:4px">(solo modo rango)</span></h2>
+  <div class="excl-legend">
+    <span><span class="leg-box" style="background:#f0f4f8;border:1px solid #ccc"></span>Hábil</span>
+    <span><span class="leg-box" style="background:#ffc7ce"></span>Feriado / No lab. (clic para marcar)</span>
+    <span><span class="leg-box" style="background:#ffffcc;border:1px solid #e0d000"></span>Ausencia individual</span>
+    <span><span class="leg-box" style="background:#e8eef5;border:1px solid #ccc"></span>Fin de semana</span>
+  </div>
+  <div class="cal-wrap" id="cal-wrap"></div>
+  <div class="excl-summary" id="excl-summary"></div>
+  <div class="aus-section">
+    <div class="aus-title">Ausencias individuales — vendedor ausente en fecha específica</div>
+    <div id="aus-rows"></div>
+    <button class="btn-add-aus" onclick="addAusRow()">+ Agregar ausencia de vendedor</button>
+  </div>
+</div>
+
 <div class="card">
   <h2><span class="num">4</span> Generar</h2>
   <button class="gen-btn" id="gbtn" disabled onclick="run()">⬇ Generar y descargar reporte Excel</button>
@@ -133,10 +204,34 @@ footer{text-align:center;font-size:11px;color:#aaa;margin-top:20px;padding-botto
   <div class="msg" id="msg"></div>
 </div>
 
+<div class="card" id="card-preview">
+  <div class="preview-header" onclick="togglePreview()">
+    <h2 style="margin-bottom:0"><span class="num">▶</span> <span id="preview-title">Vista previa</span></h2>
+    <span class="preview-toggle" id="preview-chevron">▼ expandir</span>
+  </div>
+  <div class="preview-body" id="preview-body" style="display:none">
+    <div class="prev-periodo" id="prev-periodo"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('sup')">Por Supervisor</button>
+      <button class="tab-btn" onclick="switchTab('suc')">Por Sucursal</button>
+    </div>
+    <div id="tab-sup" class="tab-pane active">
+      <div class="tbl-wrap"><table class="res-table" id="tbl-sup"></table></div>
+    </div>
+    <div id="tab-suc" class="tab-pane">
+      <div class="tbl-wrap"><table class="res-table" id="tbl-suc"></table></div>
+    </div>
+  </div>
+</div>
+
 <footer>Procesamiento 100% local · Ningún archivo se sube a internet</footer>
 </div>
 <script>
 const FILES={prog:null,ci:null,cnc:null};
+// ── Exclusiones ──────────────────────────────────────────────────────────────
+let feriados = new Set();       // Set de 'yyyy-mm-dd' globales
+let ausencias = [];             // [{vend:'975', fecha:'yyyy-mm-dd'}, ...]
+
 let MODE='single';
 const DAYS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 (function(){const t=new Date(),iso=t.toISOString().slice(0,10);
@@ -152,9 +247,11 @@ function setMode(m){
   document.getElementById('date-single').style.display=m==='single'?'block':'none';
   document.getElementById('date-range').style.display=m==='range'?'block':'none';
   const acum=m==='range';
-  document.getElementById('mode-desc').textContent=acum?'Promedia los KPIs diarios de cada vendedor en el período. Los archivos de checkin y CNC deben contener todos los días del rango.':'Genera el reporte para un día específico.';
+  document.getElementById('mode-desc').textContent=acum?'Acumula totales de cada vendedor en el período y recalcula los indicadores sobre los totales reales. Los archivos de checkin y CNC deben contener todos los días del rango.':'Genera el reporte para un día específico.';
   document.getElementById('desc-ci').textContent=acum?'VerCheckinCheckout — todos los días del período':'VerCheckinCheckout_XX_.xlsx';
   document.getElementById('desc-cnc').textContent=acum?'ComproNoCompro — todos los días del período':'ComproNoCompro_XX_.xlsx';
+  document.getElementById('card-excl').style.display=acum?'block':'none';
+  if(acum)buildCalendar();
 }
 function picked(k,inp){
   if(!inp.files[0])return;FILES[k]=inp.files[0];
@@ -171,19 +268,294 @@ function updDateRange(){
   if(!vi||!vf)return;
   const di=new Date(vi),df=new Date(vf);
   const diff=Math.round((df-di)/86400000)+1;
-  let hab=0,cur=new Date(di);while(cur<=df){if(cur.getDay()>=1&&cur.getDay()<=5)hab++;cur.setDate(cur.getDate()+1);}
+  let hab=0,cur=new Date(di);while(cur<=df){if(cur.getUTCDay()>=1&&cur.getUTCDay()<=5)hab++;cur.setUTCDate(cur.getUTCDate()+1);}
   document.getElementById('dinfo-range').innerHTML='<b>Período:</b> '+diff+' días calendario, '+hab+' días hábiles<br>'+dateInfo(di)+'<br><b>Hasta:</b> '+dateInfo(df).split('<br>')[0];
+  if(MODE==='range')buildCalendar();
 }
 function setProg(pct,txt){document.getElementById('pgwrap').style.display='block';document.getElementById('pgbar').style.width=pct+'%';document.getElementById('pgtxt').textContent=txt;}
 function showMsg(txt,type){const m=document.getElementById('msg');m.style.display='block';m.className='msg '+type;m.innerHTML=txt;}
 function hideMsg(){document.getElementById('msg').style.display='none';}
 function readFile(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>res(XLSX.read(e.target.result,{type:'binary'}));r.readAsBinaryString(file);});}
-function toJSON(wb){return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null});}
+function toJSON(wb,buscarHoja){
+  // Si buscarHoja=true, busca la hoja que tenga la columna 'Ven.' (programación)
+  // En caso contrario usa la primera hoja (CI y CNC)
+  if(buscarHoja){
+    for(const name of wb.SheetNames){
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:null});
+      if(rows.length>0&&rows[0]['Ven.']!==undefined)return rows;
+    }
+  }
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null});
+}
 function fmtDate(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
 function isoDate(d){return d.toISOString().slice(0,10);}
-function habilDates(ini,fin){const dates=[];let cur=new Date(ini);while(cur<=fin){if(cur.getDay()>=1&&cur.getDay()<=5)dates.push(new Date(cur));cur.setDate(cur.getDate()+1);}return dates;}
-function parseFechaCi(v){if(!v)return null;const s=String(v).trim();const m=s.match(/(\d{2})\/(\d{2})\/(\d{4})/);if(m)return m[3]+'-'+m[2]+'-'+m[1];return s.slice(0,10);}
-function parseFechaCnc(v){if(!v)return null;const s=String(v).trim();if(s.match(/^\d{4}-\d{2}-\d{2}/))return s.slice(0,10);return null;}
+function habilDates(ini,fin){const dates=[];let cur=new Date(ini);while(cur<=fin){if(cur.getUTCDay()>=1&&cur.getUTCDay()<=5)dates.push(new Date(cur));cur.setUTCDate(cur.getUTCDate()+1);}return dates;}
+function parseFechaCi(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400000));return d.toISOString().slice(0,10);}
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m)return m[1]+'-'+m[2]+'-'+m[3];
+  m=s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m)return m[3]+'-'+m[2]+'-'+m[1];
+  return s.slice(0,10);
+}
+function parseFechaCnc(v){
+  if(v==null||v==='')return null;
+  // Fecha Excel numérica (días desde 1900)
+  if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400000));return d.toISOString().slice(0,10);}
+  const s=String(v).trim();
+  // yyyy-mm-dd o yyyy-mm-ddTHH:MM:SS
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m)return m[1]+'-'+m[2]+'-'+m[3];
+  // dd/mm/yyyy HH:MM o dd/mm/yyyy
+  m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m)return m[3]+'-'+m[2]+'-'+m[1];
+  return null;
+}
+
+
+// ── Calendario de exclusiones ────────────────────────────────────────────────
+function buildCalendar(){
+  const vi=document.getElementById('fecha-ini').value;
+  const vf=document.getElementById('fecha-fin').value;
+  if(!vi||!vf)return;
+  const wrap=document.getElementById('cal-wrap');
+  wrap.innerHTML='';
+  feriados=new Set([...feriados]); // mantener selecciones previas
+
+  const dIni=new Date(vi+'T00:00:00Z');
+  const dFin=new Date(vf+'T00:00:00Z');
+
+  // Agrupar por mes
+  const meses={};
+  let cur=new Date(dIni);
+  while(cur<=dFin){
+    const iso=cur.toISOString().slice(0,10);
+    const mes=iso.slice(0,7);
+    if(!meses[mes])meses[mes]=[];
+    meses[mes].push(iso);
+    cur.setUTCDate(cur.getUTCDate()+1);
+  }
+
+  const DIAS_SHORT=['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+  for(const [mes,fechas] of Object.entries(meses)){
+    const [yr,mo]=mes.split('-').map(Number);
+    const div=document.createElement('div');
+    div.className='cal-month';
+    const MESES_ES=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    div.innerHTML='<div class="cal-month-title">'+MESES_ES[mo]+' '+yr+'</div>';
+
+    const grid=document.createElement('div');
+    grid.className='cal-grid';
+
+    // Encabezados
+    DIAS_SHORT.forEach(d=>{const h=document.createElement('div');h.className='cal-head';h.textContent=d;grid.appendChild(h);});
+
+    // Padding inicial
+    const primerDia=new Date(yr,mo-1,1).getDay(); // día semana del 1ro
+    for(let i=0;i<primerDia;i++){const e=document.createElement('div');e.className='cal-day fuera';grid.appendChild(e);}
+
+    // Días del mes que están en el rango
+    const diasMes=new Date(yr,mo,0).getDate();
+    for(let d=1;d<=diasMes;d++){
+      const iso=yr+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const dObj=new Date(iso+'T00:00:00Z');
+      const dow=dObj.getUTCDay(); // 0=dom,6=sab
+      const enRango=fechas.includes(iso);
+      const cell=document.createElement('div');
+      cell.textContent=d;
+      if(!enRango){cell.className='cal-day fuera';}
+      else if(dow===0||dow===6){cell.className='cal-day finde';}
+      else{
+        const esF=feriados.has(iso);
+        cell.className='cal-day habil'+(esF?' feriado':'');
+        cell.title=iso+(esF?' — No laborable (clic para quitar)':' — Clic para marcar como no laborable');
+        cell.onclick=(()=>{const f=iso;return()=>toggleFeriado(f,cell);})(iso);
+      }
+      grid.appendChild(cell);
+    }
+    div.appendChild(grid);
+    wrap.appendChild(div);
+  }
+  updExclSummary();
+}
+
+function toggleFeriado(iso,cell){
+  if(feriados.has(iso)){feriados.delete(iso);cell.classList.remove('feriado');}
+  else{feriados.add(iso);cell.classList.add('feriado');}
+  updExclSummary();
+}
+
+function updExclSummary(){
+  const nF=feriados.size;
+  const nA=ausencias.length;
+  let txt='';
+  if(nF>0)txt+='<b>'+nF+'</b> día'+(nF>1?'s':'')+' no laborable'+(nF>1?'s':'')+' marcado'+(nF>1?'s':'');
+  if(nA>0)txt+=(txt?' · ':'')+'<b>'+nA+'</b> ausencia'+(nA>1?'s':'')+' individual'+(nA>1?'es':'');
+  if(!txt)txt='Sin exclusiones marcadas';
+  document.getElementById('excl-summary').innerHTML=txt;
+}
+
+// ── Ausencias individuales ───────────────────────────────────────────────────
+function addAusRow(vend,fecha){
+  const cont=document.getElementById('aus-rows');
+  const idx=cont.children.length;
+  const row=document.createElement('div');
+  row.className='aus-row';
+  row.dataset.idx=idx;
+  const vi=document.getElementById('fecha-ini').value||'';
+  const vf=document.getElementById('fecha-fin').value||'';
+  row.innerHTML=
+    '<input type="text" placeholder="Cód. vendedor (ej: 975)" style="max-width:160px" value="'+(vend||'')+'" oninput="syncAus('+idx+',this.parentNode)">'+
+    '<input type="date" min="'+vi+'" max="'+vf+'" value="'+(fecha||'')+'" oninput="syncAus('+idx+',this.parentNode)">'+
+    '<button class="btn-rm" onclick="rmAusRow(this.parentNode)">✕</button>';
+  cont.appendChild(row);
+  ausencias.push({vend:'',fecha:''});
+  updExclSummary();
+}
+
+function syncAus(idx,row){
+  const inputs=row.querySelectorAll('input');
+  ausencias[idx]={vend:inputs[0].value.trim(),fecha:inputs[1].value};
+  updExclSummary();
+}
+
+function rmAusRow(row){
+  const idx=parseInt(row.dataset.idx);
+  ausencias.splice(idx,1);
+  row.remove();
+  // Re-indexar
+  document.getElementById('aus-rows').querySelectorAll('.aus-row').forEach((r,i)=>{
+    r.dataset.idx=i;
+    r.querySelectorAll('input').forEach(inp=>inp.setAttribute('oninput','syncAus('+i+',this.parentNode)'));
+    r.querySelector('.btn-rm').setAttribute('onclick','rmAusRow(this.parentNode)');
+  });
+  updExclSummary();
+}
+
+// Devuelve true si esa fecha+vendedor está excluida
+function estaExcluido(iso, vendCod){
+  if(feriados.has(iso))return true;
+  return ausencias.some(a=>a.vend&&a.fecha&&String(a.vend)===String(vendCod)&&a.fecha===iso);
+}
+
+
+// ── Panel de resultados en pantalla ─────────────────────────────────────────
+let previewOpen = false;
+
+function togglePreview(){
+  previewOpen=!previewOpen;
+  document.getElementById('preview-body').style.display=previewOpen?'block':'none';
+  document.getElementById('preview-chevron').textContent=previewOpen?'▲ colapsar':'▼ expandir';
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(t==='sup'?0:1)));
+  document.getElementById('tab-sup').classList.toggle('active',t==='sup');
+  document.getElementById('tab-suc').classList.toggle('active',t==='suc');
+}
+
+function fmtPct(v,klass){
+  if(v==null||isNaN(v))return '<td>—</td>';
+  const s=(v*100).toFixed(1)+'%';
+  return '<td class="'+klass+'">'+s+'</td>';
+}
+function fmtNum(v){return v==null?'<td>—</td>':'<td>'+v+'</td>';}
+
+function semaforo_ef(v,sup){
+  if(KAF.has(sup)){if(v<.65)return 'pct-red';if(v<.75)return 'pct-yel';return 'pct-grn';}
+  if(TRADE.has(sup)){if(v<.25)return 'pct-red';if(v<.5)return 'pct-yel';return 'pct-grn';}
+  return '';
+}
+function semaforo_c(v){if(v<.9)return '';if(v<.95)return 'pct-yel';return 'pct-grn';}
+
+function renderPreview(kpis, rango, conDias){
+  const card=document.getElementById('card-preview');
+  card.style.display='block';
+  document.getElementById('prev-periodo').textContent='Período: '+rango;
+  document.getElementById('preview-title').textContent='Vista previa — '+rango;
+
+  // ── Tabla Por Supervisor ─────────────────────────────────────────────────
+  const supData=Object.entries(gb(kpis,'supervisor')).sort();
+  let hsup='<thead><tr>';
+  const hSup=['Supervisor','Vend.',conDias?'Días':'','Cli. Prog.','Vis. Cert.','Cert./Prog.','Prog. c/Compra','Efectividad','Prog. s/Compra','Cumplimiento','No Prog. c/C','No Prog. s/C','Cli. Vis.'];
+  hSup.filter(h=>h!=='').forEach((h,i)=>hsup+='<th'+(i===0?' class="left"':'')+'>'+h+'</th>');
+  hsup+='</tr></thead><tbody>';
+  for(const[sup,g] of supData){
+    const t=grpTotals(g);
+    const ec=semaforo_ef(t.ef,sup),cc=semaforo_c(t.cu),ctpc=semaforo_c(t.ctp);
+    let row='<tr>';
+    row+='<td class="left" style="font-weight:500">'+sup+'</td>';
+    row+=fmtNum(g.length);
+    if(conDias)row+=fmtNum(Math.round(av(g,'dias')));
+    row+=fmtNum(t.cp)+fmtNum(t.vc);
+    row+=fmtPct(t.ctp,ctpc);
+    row+=fmtNum(t.pcc);
+    row+=fmtPct(t.ef,ec);
+    row+=fmtNum(t.psc);
+    row+=fmtPct(t.cu,cc);
+    row+=fmtNum(t.npcc)+fmtNum(t.npsc)+fmtNum(t.cv);
+    row+='</tr>';
+    hsup+=row;
+  }
+  // Total general
+  const tg=grpTotals(kpis);
+  hsup+='<tr class="total-row"><td class="left">TOTAL GENERAL</td><td>'+kpis.length+'</td>';
+  if(conDias)hsup+='<td>'+Math.round(av(kpis,'dias'))+'</td>';
+  hsup+='<td>'+tg.cp+'</td><td>'+tg.vc+'</td><td>'+(tg.ctp*100).toFixed(1)+'%</td>';
+  hsup+='<td>'+tg.pcc+'</td><td>'+(tg.ef*100).toFixed(1)+'%</td>';
+  hsup+='<td>'+tg.psc+'</td><td>'+(tg.cu*100).toFixed(1)+'%</td>';
+  hsup+='<td>'+tg.npcc+'</td><td>'+tg.npsc+'</td><td>'+tg.cv+'</td></tr>';
+  hsup+='</tbody>';
+  document.getElementById('tbl-sup').innerHTML=hsup;
+
+  // ── Tabla Por Sucursal ───────────────────────────────────────────────────
+  const SS_ORDER=['BAHIA BLANCA','COMODORO','LA COSTA','LA PLATA','MAR DEL PLATA','SAN VICENTE','TRES ARROYOS','OTRAS'];
+  const sucData=Object.entries(gb(kpis,'sucursal')).sort((a,b)=>{
+    const ia=SS_ORDER.indexOf(a[0]),ib=SS_ORDER.indexOf(b[0]);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+  const SS_COLORS={
+    'BAHIA BLANCA':'#DEEAF1','COMODORO':'#E2EFDA','LA COSTA':'#FCE4D6',
+    'LA PLATA':'#EAD1F5','MAR DEL PLATA':'#FFFDE7','SAN VICENTE':'#FCE4D6',
+    'TRES ARROYOS':'#D5D8DC','OTRAS':'#F5F5F5'
+  };
+  let hsuc='<thead><tr>';
+  const hSuc=['Sucursal','Vend.',conDias?'Días':'','Cli. Prog.','Vis. Cert.','Cert./Prog.','Prog. c/Compra','Efectividad','Prog. s/Compra','Cumplimiento','No Prog. c/C','No Prog. s/C','Cli. Vis.'];
+  hSuc.filter(h=>h!=='').forEach((h,i)=>hsuc+='<th'+(i===0?' class="left"':'')+'>'+h+'</th>');
+  hsuc+='</tr></thead><tbody>';
+  for(const[suc,g] of sucData){
+    const t=grpTotals(g);
+    const bg=SS_COLORS[suc]||'#fff';
+    let row='<tr style="background:'+bg+'!important">';
+    row+='<td class="left" style="font-weight:600">'+suc+'</td>';
+    row+=fmtNum(g.length);
+    if(conDias)row+=fmtNum(Math.round(av(g,'dias')));
+    row+=fmtNum(t.cp)+fmtNum(t.vc);
+    row+='<td>'+(t.ctp*100).toFixed(1)+'%</td>';
+    row+=fmtNum(t.pcc);
+    row+='<td>'+(t.ef*100).toFixed(1)+'%</td>';
+    row+=fmtNum(t.psc);
+    row+='<td>'+(t.cu*100).toFixed(1)+'%</td>';
+    row+=fmtNum(t.npcc)+fmtNum(t.npsc)+fmtNum(t.cv);
+    row+='</tr>';
+    hsuc+=row;
+  }
+  // Total
+  hsuc+='<tr class="total-row"><td class="left">TOTAL GENERAL</td><td>'+kpis.length+'</td>';
+  if(conDias)hsuc+='<td>'+Math.round(av(kpis,'dias'))+'</td>';
+  hsuc+='<td>'+tg.cp+'</td><td>'+tg.vc+'</td><td>'+(tg.ctp*100).toFixed(1)+'%</td>';
+  hsuc+='<td>'+tg.pcc+'</td><td>'+(tg.ef*100).toFixed(1)+'%</td>';
+  hsuc+='<td>'+tg.psc+'</td><td>'+(tg.cu*100).toFixed(1)+'%</td>';
+  hsuc+='<td>'+tg.npcc+'</td><td>'+tg.npsc+'</td><td>'+tg.cv+'</td></tr>';
+  hsuc+='</tbody>';
+  document.getElementById('tbl-suc').innerHTML=hsuc;
+
+  // Abrir automáticamente la primera vez
+  if(!previewOpen)togglePreview();
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 
 async function run(){
   hideMsg();document.getElementById('gbtn').disabled=true;
@@ -194,10 +566,10 @@ async function run(){
 
 async function runSingle(){
   const v=document.getElementById('fecha').value;if(!v)throw new Error('Seleccioná una fecha.');
-  const[yr,mo,dy]=v.split('-').map(Number),d=new Date(yr,mo-1,dy);
-  const dow=d.getDay()||7,odd=wkNum(d)%2===1,ds=fmtDate(d);
+  const[yr,mo,dy]=v.split('-').map(Number),d=new Date(Date.UTC(yr,mo-1,dy));
+  const dow=d.getUTCDay()||7,odd=wkNum(d)%2===1,ds=fmtDate(d);
   const fn=String(dy).padStart(2,'0')+String(mo).padStart(2,'0')+yr+'_IndicadoresClave.xlsx';
-  setProg(10,'Leyendo programación...');const progRows=toJSON(await readFile(FILES.prog));
+  setProg(10,'Leyendo programación...');const progRows=toJSON(await readFile(FILES.prog),true);
   setProg(30,'Leyendo checkins...');const ciRows=toJSON(await readFile(FILES.ci));
   setProg(50,'Leyendo Compró/No compró...');const cncRows=toJSON(await readFile(FILES.cnc));
   setProg(65,'Calculando KPIs...');
@@ -207,6 +579,7 @@ async function runSingle(){
   const blob=buildXLS_single(kpis,progByV,ciRows,cncRows,ds);
   setProg(100,'Descargando...');download(blob,fn);
   showMsg('✅ <b>'+fn+'</b> generado con <b>'+kpis.length+' vendedores</b>.','ok');
+  renderPreview(kpis,ds,false);
 }
 
 async function runRange(){
@@ -214,7 +587,7 @@ async function runRange(){
   if(!vi||!vf)throw new Error('Seleccioná las fechas de inicio y fin.');
   const dIni=new Date(vi),dFin=new Date(vf);
   if(dIni>dFin)throw new Error('La fecha inicial debe ser anterior o igual a la final.');
-  setProg(10,'Leyendo programación...');const progRows=toJSON(await readFile(FILES.prog));
+  setProg(10,'Leyendo programación...');const progRows=toJSON(await readFile(FILES.prog),true);
   setProg(25,'Leyendo checkins...');const ciRows=toJSON(await readFile(FILES.ci));
   setProg(40,'Leyendo Compró/No compró...');const cncRows=toJSON(await readFile(FILES.cnc));
   const fechas=habilDates(dIni,dFin);
@@ -223,11 +596,14 @@ async function runRange(){
   const cncParsed=cncRows.filter(r=>r['Vendedor']&&r['Cliente Id']).map(r=>({...r,_fecha:parseFechaCnc(r['Fecha y Hora Subida'])}));
   const dailyKpis=[];let processed=0;
   for(const fecha of fechas){
-    const dow=fecha.getDay()||7,odd=wkNum(fecha)%2===1,iso=isoDate(fecha);
+    const iso=isoDate(fecha);
+    // Saltar días marcados como no laborables globales
+    if(feriados.has(iso)){processed++;continue;}
+    const dow=fecha.getUTCDay()||7,odd=wkNum(fecha)%2===1;
     const ciDay=ciParsed.filter(r=>r._fecha===iso);
     const cncDay=cncParsed.filter(r=>r._fecha===iso);
     if(!ciDay.length&&!cncDay.length){processed++;continue;}
-    const{kpis}=buildKpis(progRows,ciDay,cncDay,dow,odd);
+    const{kpis}=buildKpis(progRows,ciDay,cncDay,dow,odd,true,iso);
     if(kpis.length)dailyKpis.push(kpis);
     processed++;
     setProg(40+Math.round(40*processed/fechas.length),'Procesando '+fmtDate(fecha)+'...');
@@ -241,13 +617,14 @@ async function runRange(){
   const blob=buildXLS_range(kpisAcum,progRows,ciParsed,cncParsed,fechas,rango);
   setProg(100,'Descargando...');download(blob,fn);
   showMsg('✅ <b>'+fn+'</b> — <b>'+kpisAcum.length+' vendedores</b>, <b>'+dailyKpis.length+' días</b> con datos.','ok');
+  renderPreview(kpisAcum,rango,true);
 }
 
 const S2S={'P&G BAHIA KAF':'BAHIA BLANCA','P&G BAHIA TRADE':'BAHIA BLANCA','P&G COMO KAF':'COMODORO','P&G COMO TRADE':'COMODORO','BAT COMODORO':'COMODORO','P&G PINA KAF':'LA COSTA','P&G PINA TRADE':'LA COSTA','P&G LP KAF':'LA PLATA','P&G LP TRADE':'LA PLATA','P&G LP KIOSCOS':'LA PLATA','P&G MDQ KAF':'MAR DEL PLATA','P&G MDQ TRADE':'MAR DEL PLATA','P&G SAN VICENTE':'SAN VICENTE','P&G TRES ARROYO':'TRES ARROYOS'};
 const KAF=new Set(['P&G BAHIA KAF','P&G COMO KAF','P&G PINA KAF','P&G LP KAF','P&G MDQ KAF','BAT COMODORO','P&G LP KIOSCOS']);
 const TRADE=new Set(['P&G BAHIA TRADE','P&G COMO TRADE','P&G PINA TRADE','P&G LP TRADE','P&G MDQ TRADE','P&G SAN VICENTE','P&G TRES ARROYO']);
 
-function buildKpis(progRows,ciRows,cncRows,dow,odd){
+function buildKpis(progRows,ciRows,cncRows,dow,odd,soloActivos=false,isoFecha=''){
   const visDay=String(dow),frecs=['Semanal',odd?'Semana Impar':'Semana Par'];
   const progByV={},metaByV={};
   for(const r of progRows){
@@ -262,7 +639,7 @@ function buildKpis(progRows,ciRows,cncRows,dow,odd){
     if(!r['Vendedor']||!r['Codigo'])continue;
     const v=parseInt(r['Vendedor']),c=parseInt(r['Codigo']);
     if(!allByV[v])allByV[v]=new Set();allByV[v].add(c);
-    if(String(r['Es Valido']||'').toUpperCase().trim()==='SI'){if(!validByV[v])validByV[v]=new Set();validByV[v].add(c);}
+    const ev=String(r['Es Valido']||'').toUpperCase().trim();if(ev==='SI'||ev==='S'||ev==='1'||ev==='TRUE'||ev==='SÍ'){if(!validByV[v])validByV[v]=new Set();validByV[v].add(c);}
   }
   const comByV={},cncAllByV={};
   for(const r of cncRows){
@@ -271,9 +648,15 @@ function buildKpis(progRows,ciRows,cncRows,dow,odd){
     if(!cncAllByV[v])cncAllByV[v]=new Set();cncAllByV[v].add(c);
     if(String(r['Compro?']||'').trim().toLowerCase()==='si'){if(!comByV[v])comByV[v]=new Set();comByV[v].add(c);}
   }
+  // En modo acumulado: solo incluir vendedores con actividad real ese día
+  const vendsActivos=new Set([...Object.keys(allByV),...Object.keys(cncAllByV)].map(Number));
   const kpis=[];
   for(const[vs,prog] of Object.entries(progByV)){
-    const v=parseInt(vs),valid=validByV[v]||new Set(),allCI=allByV[v]||new Set(),com=comByV[v]||new Set(),cncAll=cncAllByV[v]||new Set();
+    const v=parseInt(vs);
+    if(soloActivos&&vendsActivos.size>0&&!vendsActivos.has(v))continue;
+    // Saltar si el vendedor tiene ausencia individual ese día
+    if(isoFecha&&ausencias.some(a=>a.vend&&a.fecha===isoFecha&&parseInt(a.vend)===v))continue;
+    const valid=validByV[v]||new Set(),allCI=allByV[v]||new Set(),com=comByV[v]||new Set(),cncAll=cncAllByV[v]||new Set();
     const cp=prog.size;if(!cp)continue;
     const vc=[...prog].filter(c=>valid.has(c)).length;
     const pcc=[...prog].filter(c=>com.has(c)).length;
@@ -288,13 +671,35 @@ function buildKpis(progRows,ciRows,cncRows,dow,odd){
   return{kpis,progByV};
 }
 
+// =====================================================================
+// acumular(): acumula TOTALES del período.
+// cli_prog = total de visitas programadas en el período (suma de días)
+// prog_cc  = total de programados que compraron en el período (suma de días)
+// efectividad = prog_cc_total / cli_prog_total
+// Ej: 176 visitas programadas, 127 compras → efectividad 72.16%
+// =====================================================================
 function acumular(dailyFrames){
   const acc={};
+  const SUMS=['cli_prog','vis_cert','prog_cc','prog_sc','no_prog_cc','no_prog_sc','cli_vis'];
   for(const frame of dailyFrames)for(const vr of frame){
-    if(!acc[vr.cod])acc[vr.cod]={...vr,dias:0,_s:{cli_prog:0,vis_cert:0,cert_prog:0,prog_cc:0,efectividad:0,prog_sc:0,cumplimiento:0,no_prog_cc:0,no_prog_sc:0,cli_vis:0}};
-    acc[vr.cod].dias++;for(const k of Object.keys(acc[vr.cod]._s))acc[vr.cod]._s[k]+=vr[k]||0;
+    if(!acc[vr.cod])acc[vr.cod]={...vr,dias:0,_s:Object.fromEntries(SUMS.map(k=>[k,0]))};
+    acc[vr.cod].dias++;
+    for(const k of SUMS)acc[vr.cod]._s[k]+=vr[k]||0;
   }
-  return Object.values(acc).map(vr=>{const d=vr.dias;return{cod:vr.cod,nombre:vr.nombre,supervisor:vr.supervisor,sucursal:vr.sucursal,dias:d,...Object.fromEntries(Object.entries(vr._s).map(([k,v])=>[k,v/d]))};}).sort((a,b)=>a.sucursal.localeCompare(b.sucursal)||a.supervisor.localeCompare(b.supervisor)||a.cod-b.cod);
+  return Object.values(acc).map(vr=>{
+    const s=vr._s;
+    const cp=s.cli_prog,vc=s.vis_cert,pcc=s.prog_cc,psc=s.prog_sc;
+    return{
+      cod:vr.cod,nombre:vr.nombre,supervisor:vr.supervisor,sucursal:vr.sucursal,dias:vr.dias,
+      cli_prog:cp,vis_cert:vc,
+      cert_prog:cp?vc/cp:0,
+      prog_cc:pcc,
+      efectividad:cp?pcc/cp:0,
+      prog_sc:psc,
+      cumplimiento:cp?(pcc+psc)/cp:0,
+      no_prog_cc:s.no_prog_cc,no_prog_sc:s.no_prog_sc,cli_vis:s.cli_vis
+    };
+  }).sort((a,b)=>a.sucursal.localeCompare(b.sucursal)||a.supervisor.localeCompare(b.supervisor)||a.cod-b.cod);
 }
 
 const SS={'BAHIA BLANCA':{f:'FFDEEAF1',c:'FF1F4E79'},'COMODORO':{f:'FFE2EFDA',c:'FF375623'},'LA COSTA':{f:'FFFCE4D6',c:'FF7B3F00'},'LA PLATA':{f:'FFEAD1F5',c:'FF4A235A'},'MAR DEL PLATA':{f:'FFFFF2CC',c:'FF7F6000'},'SAN VICENTE':{f:'FFFCE4D6',c:'FF833C00'},'TRES ARROYOS':{f:'FFD5D8DC',c:'FF212F3D'},'OTRAS':{f:'FFFFFFFF',c:'FF444444'}};
@@ -378,7 +783,6 @@ function makeShTabla(kpis,perLabel,perGet,conDias){
 }
 
 function grpTotals(g){
-  // Suma cantidades, recalcula porcentajes sobre totales
   const cp=sm(g,'cli_prog'),vc=sm(g,'vis_cert'),pcc=sm(g,'prog_cc'),psc=sm(g,'prog_sc');
   return{cp,vc,pcc,psc,
     ctp:cp?vc/cp:0,
@@ -426,7 +830,6 @@ function makeShSuc(kpis,conDias){
     vals.forEach((v,ci)=>{const fmt=ci===0?null:(ci<=1+off?NUM:(ci===4+off||ci===6+off||ci===8+off?PCT:NUM));ws[ec(r,ci)]=mC(v,sf,sfc,true,fmt,ci===0?'left':'center');});
     r++;
   }
-  // Fila TOTAL GENERAL — suma de todo
   const t=grpTotals(kpis);
   ws[ec(r,0)]=mC('TOTAL GENERAL',DNV,'FFFFFFFF',true,null,'left');
   const tots=[kpis.length];if(conDias)tots.push(Math.round(av(kpis,'dias')));
@@ -464,8 +867,9 @@ function makeShCliRange(progRows,ciParsed,cncParsed,kpis,fechas){
   ['Sucursal','Supervisor','Cód.','Vendedor','Cód. Cliente','Cliente','Días prog.','Días cert.','% Cert.','Días c/compra','% Efect.','% Cumpl.'].forEach((h,i)=>ws[ec(0,i)]=mC(h,DNV,'FFFFFFFF',true,null,'center'));
   const cliRec={},cliNom={};
   for(const fecha of fechas){
-    const iso=isoDate(fecha),dow=fecha.getDay()||7,odd=wkNum(fecha)%2===1,visDay=String(dow),frecs=['Semanal',odd?'Semana Impar':'Semana Par'];
+    const iso=isoDate(fecha),dow=fecha.getUTCDay()||7,odd=wkNum(fecha)%2===1,visDay=String(dow),frecs=['Semanal',odd?'Semana Impar':'Semana Par'];
     const ciDay=ciParsed.filter(r=>r._fecha===iso),cncDay=cncParsed.filter(r=>r._fecha===iso);
+    if(feriados.has(iso))continue;
     if(!ciDay.length&&!cncDay.length)continue;
     const progDay=progRows.filter(r=>r['Ven.']&&r['Cuenta']&&String(r['Visita']||'').trim()===visDay&&frecs.includes(String(r['Frecuencia de Visita']||'Semanal').trim()));
     const progByV={};
@@ -474,7 +878,9 @@ function makeShCliRange(progRows,ciParsed,cncParsed,kpis,fechas){
     for(const r of ciDay){if(!r['Vendedor']||!r['Codigo'])continue;const v=parseInt(r['Vendedor']),c=parseInt(r['Codigo']);if(!aByV[v])aByV[v]=new Set();aByV[v].add(c);if(String(r['Es Valido']||'').toUpperCase().trim()==='SI'){if(!vByV[v])vByV[v]=new Set();vByV[v].add(c);}}
     const comByV={};
     for(const r of cncDay){const vend=r['Vendedor'],cli=r['Cliente Id'];if(!vend||!cli)continue;const v=parseInt(vend),c=parseInt(cli);if(String(r['Compro?']||'').trim().toLowerCase()==='si'){if(!comByV[v])comByV[v]=new Set();comByV[v].add(c);}}
-    for(const[vs,prog] of Object.entries(progByV)){const v=parseInt(vs),valid=vByV[v]||new Set(),allci=aByV[v]||new Set(),com=comByV[v]||new Set();for(const c of prog){const key=v+'_'+c;if(!cliRec[key])cliRec[key]={v,c,dp:0,dc:0,dco:0,dcu:0};cliRec[key].dp++;cliRec[key].dc+=valid.has(c)?1:0;cliRec[key].dco+=com.has(c)?1:0;cliRec[key].dcu+=allci.has(c)?1:0;}}
+    for(const[vs,prog] of Object.entries(progByV)){const v=parseInt(vs);
+      if(ausencias.some(a=>a.vend&&a.fecha===iso&&parseInt(a.vend)===v))continue;
+      const valid=vByV[v]||new Set(),allci=aByV[v]||new Set(),com=comByV[v]||new Set();for(const c of prog){const key=v+'_'+c;if(!cliRec[key])cliRec[key]={v,c,dp:0,dc:0,dco:0,dcu:0};cliRec[key].dp++;cliRec[key].dc+=valid.has(c)?1:0;cliRec[key].dco+=com.has(c)?1:0;cliRec[key].dcu+=allci.has(c)?1:0;}}
   }
   const kIdx=Object.fromEntries(kpis.map(vr=>[vr.cod,vr]));
   const rows=Object.values(cliRec).filter(r=>kIdx[r.v]).map(r=>{const vr=kIdx[r.v],dp=r.dp;return{suc:vr.sucursal,sup:vr.supervisor,cod:r.v,nom:vr.nombre,c:r.c,cli:cliNom[r.v+'_'+r.c]||'',dp,dc:r.dc,pc:dp?r.dc/dp:0,dco:r.dco,pe:dp?r.dco/dp:0,pcu:dp?r.dcu/dp:0};}).sort((a,b)=>a.suc.localeCompare(b.suc)||a.sup.localeCompare(b.sup)||a.cod-b.cod||a.c-b.c);
