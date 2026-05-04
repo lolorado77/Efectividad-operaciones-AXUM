@@ -183,7 +183,7 @@ footer{text-align:center;font-size:11px;color:#aaa;margin-top:20px;padding-botto
     <span><span class="leg-box" style="background:#f0f4f8;border:1px solid #ccc"></span>Hábil</span>
     <span><span class="leg-box" style="background:#ffc7ce"></span>Feriado / No lab. (clic para marcar)</span>
     <span><span class="leg-box" style="background:#ffffcc;border:1px solid #e0d000"></span>Ausencia individual</span>
-    <span><span class="leg-box" style="background:#e8eef5;border:1px solid #ccc"></span>Fin de semana</span>
+    <span><span class="leg-box" style="background:#e8eef5;border:1px solid #ccc"></span>Domingo</span>
   </div>
   <div class="cal-wrap" id="cal-wrap"></div>
   <div class="excl-summary" id="excl-summary"></div>
@@ -268,7 +268,7 @@ function updDateRange(){
   if(!vi||!vf)return;
   const di=new Date(vi),df=new Date(vf);
   const diff=Math.round((df-di)/86400000)+1;
-  let hab=0,cur=new Date(di);while(cur<=df){if(cur.getUTCDay()>=1&&cur.getUTCDay()<=5)hab++;cur.setUTCDate(cur.getUTCDate()+1);}
+  let hab=0,cur=new Date(di);while(cur<=df){if(cur.getUTCDay()>=1&&cur.getUTCDay()<=6)hab++;cur.setUTCDate(cur.getUTCDate()+1);}
   document.getElementById('dinfo-range').innerHTML='<b>Período:</b> '+diff+' días calendario, '+hab+' días hábiles<br>'+dateInfo(di)+'<br><b>Hasta:</b> '+dateInfo(df).split('<br>')[0];
   if(MODE==='range')buildCalendar();
 }
@@ -289,7 +289,7 @@ function toJSON(wb,buscarHoja){
 }
 function fmtDate(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
 function isoDate(d){return d.toISOString().slice(0,10);}
-function habilDates(ini,fin){const dates=[];let cur=new Date(ini);while(cur<=fin){if(cur.getUTCDay()>=1&&cur.getUTCDay()<=5)dates.push(new Date(cur));cur.setUTCDate(cur.getUTCDate()+1);}return dates;}
+function habilDates(ini,fin){const dates=[];let cur=new Date(ini);while(cur<=fin){if(cur.getUTCDay()>=1&&cur.getUTCDay()<=6)dates.push(new Date(cur));cur.setUTCDate(cur.getUTCDate()+1);}return dates;}
 function parseFechaCi(v){
   if(v==null||v==='')return null;
   if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400000));return d.toISOString().slice(0,10);}
@@ -366,7 +366,7 @@ function buildCalendar(){
       const cell=document.createElement('div');
       cell.textContent=d;
       if(!enRango){cell.className='cal-day fuera';}
-      else if(dow===0||dow===6){cell.className='cal-day finde';}
+      else if(dow===0){cell.className='cal-day finde';}
       else{
         const esF=feriados.has(iso);
         cell.className='cal-day habil'+(esF?' feriado':'');
